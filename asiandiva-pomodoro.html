@@ -219,6 +219,20 @@
   }
   .help-cmd b { color: var(--ds-gold-deep); font-weight: 700; }
 
+  /* compact command list (fits all commands in the box) */
+  .help-cmd2 {
+    display: flex; align-items: baseline; gap: 8px;
+    padding: 9px 4px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    font-size: 15px;
+  }
+  .help-cmd2:last-child { border-bottom: none; }
+  .help-cmd2 b {
+    color: var(--ds-gold); font-weight: 800;
+    font-family: 'Baloo 2', cursive; white-space: nowrap;
+  }
+  .help-cmd2 span { color: var(--panel-soft); font-size: 13px; }
+
   /* "My Tasks" backlog list */
   .my-active { display: flex; align-items: center; gap: 7px; font-size: 15px; color: var(--panel-text); padding-left: 4px; margin: 4px 0 2px; font-weight: 600;}
   .my-active .spark { color: var(--ds-amber); }
@@ -821,29 +835,12 @@ let showingCommands = false;
 // Commands help screen content (shown after cycling all viewers)
 function commandsScreenHTML() {
   return `<div class="help-scroll"><div class="help-scroll-inner">
-      <div class="help-section">
-        <div class="help-label">📋 Add tasks</div>
-        <div class="help-cmd"><b>!task</b> tidy my desk</div>
-        <div class="help-cmd" style="opacity:.75;font-size:.85em;">first one = active, rest = backlog</div>
-      </div>
-      <div class="help-section">
-        <div class="help-label">✅ Finish a task</div>
-        <div class="help-cmd"><b>!done</b> <span style="opacity:.7">(or !done dishes)</span></div>
-        <div class="help-cmd" style="opacity:.75;font-size:.85em;">next task moves up automatically</div>
-      </div>
-      <div class="help-section">
-        <div class="help-label">🔄 Switch tasks</div>
-        <div class="help-cmd"><b>!now</b> read chapter 3</div>
-        <div class="help-cmd" style="opacity:.75;font-size:.85em;">jump to a backlog task</div>
-      </div>
-      <div class="help-section">
-        <div class="help-label">⏱ Personal timer</div>
-        <div class="help-cmd"><b>!pomo</b> 20 Study</div>
-      </div>
-      <div class="help-section">
-        <div class="help-label">👀 See your list</div>
-        <div class="help-cmd"><b>!backlog</b></div>
-      </div>
+      <div class="help-cmd2"><b>!task</b> <span>add a task</span></div>
+      <div class="help-cmd2"><b>!done</b> <span>finish current task</span></div>
+      <div class="help-cmd2"><b>!now</b> <span>switch active task</span></div>
+      <div class="help-cmd2"><b>!later</b> <span>add to backlog</span></div>
+      <div class="help-cmd2"><b>!backlog</b> <span>see your list</span></div>
+      <div class="help-cmd2"><b>!pomo 20</b> <span>start a timer</span></div>
     </div></div>`;
 }
 
