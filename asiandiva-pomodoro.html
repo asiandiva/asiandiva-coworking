@@ -601,23 +601,11 @@
       </div>
     </div>
 
-    <!-- RIGHT: My Tasks — static, always Mary's -->
+    <!-- RIGHT: My Tasks — driven by backend (Mary's starred + backlog) -->
     <div class="help-panel">
       <div class="help-head">My Tasks</div>
-      <div class="help-body">
-        <div class="help-scroll"><div class="help-scroll-inner">
-          <div class="help-section">
-            <div class="help-label">Task on List</div>
-            <div class="my-active"><span class="spark">✦</span> Build the Home Base</div>
-          </div>
-          <div class="help-section">
-            <div class="help-label">Backlog</div>
-            <div class="backlog-item"><span class="bl-num">1</span> Edit clips</div>
-            <div class="backlog-item"><span class="bl-num">2</span> Reply to mods</div>
-            <div class="backlog-item"><span class="bl-num">3</span> Plan next stream</div>
-            <div class="backlog-item"><span class="bl-num">4</span> Take a break</div>
-          </div>
-        </div></div>
+      <div class="help-body" id="myTasksBody">
+        <div class="help-scroll"><div class="help-scroll-inner" id="myTasksInner"></div></div>
       </div>
     </div>
   </div>
@@ -1172,9 +1160,37 @@ function applyBackendState(s) {
   // tasks → render squad list + viewer panel
   liveTasks    = s.tasks || [];
   liveBacklogs = buildBacklogs(s.tasks || []);
+  renderMyTasksPanel(s.tasks || []);
   renderTimer();
   renderStats();
   renderLiveTasks();
+}
+
+// render Mary's own "My Tasks" panel from backend (mine:true tasks)
+function renderMyTasksPanel(allTasks){
+  const inner = document.getElementById('myTasksInner');
+  if (!inner) return;
+  const mine = allTasks.filter(t => t.mine && !t.done);
+  if (mine.length === 0){
+    inner.innerHTML = `<div class="empty-state" style="padding:18px 14px;">
+        <div class="es-emoji">📝</div>
+        <div class="es-title">No tasks yet</div>
+        <div class="es-sub">Add tasks from<br>your Home Base ✨</div>
+      </div>`;
+    return;
+  }
+  const active = mine[0];
+  const backlog = mine.slice(1);
+  let html = `<div class="help-section">
+      <div class="help-label">Task on List</div>
+      <div class="my-active"><span class="spark">✦</span> ${active.text}</div>
+    </div>`;
+  if (backlog.length){
+    html += `<div class="help-section"><div class="help-label">Backlog</div>`;
+    backlog.forEach((t,i)=>{ html += `<div class="backlog-item"><span class="bl-num">${i+1}</span> ${t.text}</div>`; });
+    html += `</div>`;
+  }
+  inner.innerHTML = html;
 }
 
 // rebuild per-viewer backlogs from the flat task list for the cycling panel
