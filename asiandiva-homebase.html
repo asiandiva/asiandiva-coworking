@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diva Squad — Home Base</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Baloo+2:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ds-gold:      #ffe49c;
+    --ds-gold-deep: #f2c14e;
+    --ds-amber:     #e0a93a;
+    --ds-mint:      #a8e6cf;
+    --ds-mint-deep: #7ac8aa;
+    --ds-lil:       #c2b0e8;
+    --ds-pink:      #ff9ec0;
+    --ds-red:       #ff7a8a;
+
+    --bg:           #1a1526;
+    --bg-2:         #221b30;
+    --card:         rgba(48, 40, 66, 0.55);
+    --card-hi:      rgba(60, 50, 80, 0.6);
+    --border:       rgba(255, 236, 188, 0.18);
+    --text:         #fdf6e3;
+    --soft:         #c9bfd9;
+    --dim:          #8a7fa0;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Quicksand', sans-serif;
+    background:
+      radial-gradient(circle at 20% 0%, #2c2340 0%, transparent 55%),
+      radial-gradient(circle at 90% 100%, #2a2038 0%, transparent 55%),
+      var(--bg);
+    color: var(--text);
+    -webkit-font-smoothing: antialiased;
+    padding: 16px;
+    min-height: 100vh;
+  }
+  .dock { max-width: 440px; margin: 0 auto; }
+
+  /* header */
+  .hb-header {
+    display: flex; align-items: center; gap: 11px;
+    padding: 4px 4px 16px;
+  }
+  .hb-logo {
+    width: 42px; height: 42px; border-radius: 13px;
+    background: linear-gradient(135deg, var(--ds-gold), var(--ds-amber));
+    display: grid; place-items: center; font-size: 22px;
+    box-shadow: 0 6px 16px rgba(224,169,58,0.35);
+  }
+  .hb-title { font-family: 'Baloo 2'; font-weight: 800; font-size: 21px; line-height: 1; }
+  .hb-sub { font-size: 12px; color: var(--dim); font-weight: 600; margin-top: 2px; }
+  .hb-status {
+    margin-left: auto; display: flex; align-items: center; gap: 6px;
+    font-size: 11px; font-weight: 700; color: var(--ds-mint);
+    text-transform: uppercase; letter-spacing: .5px;
+  }
+  .hb-status .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ds-mint);
+    box-shadow: 0 0 8px var(--ds-mint); animation: blip 1.8s infinite; }
+  @keyframes blip { 0%,100%{opacity:1} 50%{opacity:.4} }
+
+  /* cards */
+  .card {
+    background: var(--card);
+    backdrop-filter: blur(12px);
+    border: 1.5px solid var(--border);
+    border-radius: 18px;
+    padding: 16px;
+    margin-bottom: 14px;
+  }
+  .card-title {
+    font-family: 'Baloo 2'; font-weight: 700; font-size: 14px;
+    color: var(--ds-gold); text-transform: uppercase; letter-spacing: 1px;
+    margin-bottom: 13px; display: flex; align-items: center; gap: 7px;
+  }
+
+  /* timer readout */
+  .timer-readout {
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--bg-2); border-radius: 14px; padding: 12px 16px; margin-bottom: 13px;
+  }
+  .tr-time { font-family: 'Baloo 2'; font-weight: 800; font-size: 38px; line-height: 1; }
+  .tr-meta { text-align: right; }
+  .tr-set { font-family: 'Baloo 2'; font-weight: 700; font-size: 18px; }
+  .tr-set b { color: var(--ds-amber); }
+  .tr-phase { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--ds-amber); }
+
+  /* button rows */
+  .btn-row { display: flex; gap: 8px; }
+  .btn-row + .btn-row { margin-top: 8px; }
+  button {
+    font-family: 'Quicksand', sans-serif; font-weight: 700;
+    border: none; border-radius: 12px; cursor: pointer;
+    padding: 11px 12px; font-size: 14px; color: var(--text);
+    background: var(--card-hi); border: 1.5px solid var(--border);
+    flex: 1; transition: transform .08s, filter .15s;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  button:hover { filter: brightness(1.15); }
+  button:active { transform: scale(0.96); }
+  .btn-go    { background: linear-gradient(135deg, var(--ds-mint), var(--ds-mint-deep)); color: #173a2c; border: none; }
+  .btn-pause { background: linear-gradient(135deg, var(--ds-gold), var(--ds-amber)); color: #4a3a12; border: none; }
+  .btn-reset { background: linear-gradient(135deg, #ff9ca8, var(--ds-red)); color: #5a1822; border: none; }
+  .btn-ghost { background: var(--card-hi); }
+  .btn-sm { font-size: 13px; padding: 9px 10px; }
+
+  /* preset pills */
+  .presets { display: flex; gap: 8px; flex-wrap: wrap; }
+  .preset {
+    flex: 1; min-width: 90px;
+    background: var(--bg-2); border: 1.5px solid var(--border);
+    border-radius: 12px; padding: 10px; cursor: pointer; text-align: center;
+    transition: filter .15s, transform .08s;
+  }
+  .preset:hover { filter: brightness(1.2); }
+  .preset.active { border-color: var(--ds-gold); background: rgba(255,228,156,0.12); }
+  .preset .p-name { font-weight: 700; font-size: 13px; }
+  .preset .p-val { font-size: 11px; color: var(--dim); margin-top: 2px; }
+
+  /* duration steppers */
+  .dur-grid { display: flex; gap: 8px; }
+  .dur {
+    flex: 1; background: var(--bg-2); border-radius: 12px; padding: 10px 8px; text-align: center;
+    border: 1.5px solid var(--border);
+  }
+  .dur-lbl { font-size: 11px; color: var(--soft); font-weight: 600; text-transform: uppercase; letter-spacing: .5px; }
+  .dur-ctrl { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 5px; }
+  .dur-ctrl button { flex: 0 0 auto; width: 26px; height: 26px; padding: 0; font-size: 16px; border-radius: 8px; }
+  .dur-val { font-family: 'Baloo 2'; font-weight: 800; font-size: 20px; min-width: 26px; }
+
+  /* add task */
+  .add-row { display: flex; gap: 8px; }
+  .add-row input {
+    flex: 1; background: var(--bg-2); border: 1.5px solid var(--border);
+    border-radius: 12px; padding: 11px 13px; color: var(--text);
+    font-family: 'Quicksand'; font-size: 14px; font-weight: 600;
+  }
+  .add-row input::placeholder { color: var(--dim); }
+  .add-row input:focus { outline: none; border-color: var(--ds-gold); }
+  .add-btn { flex: 0 0 auto; width: 46px; background: linear-gradient(135deg, var(--ds-gold), var(--ds-amber)); color: #4a3a12; border: none; font-size: 20px; }
+
+  /* my tasks list */
+  .mt-item {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--bg-2); border-radius: 11px; padding: 10px 12px; margin-top: 8px;
+  }
+  .mt-check {
+    width: 22px; height: 22px; flex: 0 0 auto; border-radius: 7px;
+    border: 2px solid var(--ds-mint-deep); cursor: pointer;
+    display: grid; place-items: center; font-size: 14px; color: transparent;
+    transition: all .15s;
+  }
+  .mt-item.done .mt-check { background: var(--ds-mint); color: #173a2c; border-color: var(--ds-mint); }
+  .mt-text { flex: 1; font-weight: 600; font-size: 14px; }
+  .mt-item.done .mt-text { text-decoration: line-through; color: var(--dim); }
+  .mt-star {
+    flex: 0 0 auto; background: none; border: none; cursor: pointer;
+    font-size: 17px; width: auto; padding: 0 2px; color: var(--dim);
+    transition: transform .12s, color .15s;
+  }
+  .mt-star:hover { transform: scale(1.2); }
+  .mt-item.active .mt-star { color: var(--ds-gold); text-shadow: 0 0 8px var(--ds-gold); }
+  .mt-item.active {
+    border: 1.5px solid var(--ds-gold);
+    background: rgba(255,228,156,0.10);
+    box-shadow: 0 0 0 1px rgba(255,228,156,0.15) inset;
+  }
+  .mt-active-tag {
+    font-size: 9px; font-weight: 800; letter-spacing: .8px; text-transform: uppercase;
+    color: #4a3a12; background: var(--ds-gold); padding: 2px 7px; border-radius: 99px;
+    flex: 0 0 auto;
+  }
+  .mt-x { flex: 0 0 auto; color: var(--dim); cursor: pointer; font-size: 16px; padding: 0 4px; background: none; border: none; width: auto; }
+  .mt-x:hover { color: var(--ds-red); }
+  .mt-section-label {
+    font-size: 11px; font-weight: 700; color: var(--ds-amber);
+    text-transform: uppercase; letter-spacing: .8px; margin: 14px 0 2px 4px;
+  }
+
+  /* squad list preview */
+  .squad {
+    background: var(--bg-2); border-radius: 12px; padding: 6px 0;
+    max-height: 240px; overflow-y: auto;
+  }
+  .squad::-webkit-scrollbar { width: 6px; }
+  .squad::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 99px; }
+  .sq-row { display: flex; align-items: center; gap: 8px; padding: 7px 14px; font-size: 13px; }
+  .sq-check { width: 15px; flex: 0 0 auto; color: var(--ds-mint); font-weight: 700; opacity: 0; }
+  .sq-row.done .sq-check { opacity: 1; }
+  .sq-user { font-weight: 700; white-space: nowrap; }
+  .sq-text { color: var(--text); }
+  .sq-row.done .sq-text { text-decoration: line-through; color: var(--dim); }
+  .sq-pomo { margin-left: auto; flex: 0 0 auto; font-size: 11px; font-weight: 700; color: #4a3a12;
+    background: linear-gradient(100deg, var(--ds-gold), var(--ds-amber)); padding: 2px 8px; border-radius: 99px; }
+  .sq-actions { margin-left: auto; display: flex; gap: 4px; }
+  .sq-row .sq-actions { opacity: 0; transition: opacity .15s; }
+  .sq-row:hover .sq-actions { opacity: 1; }
+  .sq-mini { background: none; border: none; color: var(--dim); cursor: pointer; font-size: 13px; width: auto; padding: 2px 4px; flex: 0 0 auto; }
+  .sq-mini:hover { color: var(--ds-red); }
+
+  /* toggles */
+  .tog-row { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; }
+  .tog-row + .tog-row { border-top: 1px solid rgba(255,255,255,0.06); }
+  .tog-lbl { font-weight: 600; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+  .switch { width: 44px; height: 25px; border-radius: 99px; background: var(--bg-2); border: 1.5px solid var(--border); position: relative; cursor: pointer; transition: background .2s; flex: 0 0 auto; }
+  .switch.on { background: linear-gradient(135deg, var(--ds-mint), var(--ds-mint-deep)); border-color: transparent; }
+  .switch .knob { position: absolute; top: 2px; left: 2px; width: 19px; height: 19px; border-radius: 50%; background: #fff; transition: left .2s; }
+  .switch.on .knob { left: 21px; }
+
+  /* boba flavor */
+  .flavor-row { display: flex; align-items: center; gap: 10px; }
+  .flavor-chip { display: flex; align-items: center; gap: 8px; background: var(--bg-2); border-radius: 11px; padding: 9px 13px; flex: 1; }
+  .flavor-dot { width: 20px; height: 20px; border-radius: 50%; flex: 0 0 auto; box-shadow: 0 0 8px currentColor; }
+  .flavor-name { font-weight: 700; font-size: 14px; }
+
+  /* goal */
+  .goal-row { display: flex; align-items: center; gap: 10px; }
+  .goal-row .dur-ctrl { margin: 0; }
+  .goal-bar { flex: 1; height: 10px; background: var(--bg-2); border-radius: 99px; overflow: hidden; }
+  .goal-fill { height: 100%; width: 50%; background: linear-gradient(90deg, var(--ds-gold), var(--ds-amber)); border-radius: 99px; }
+  .goal-txt { font-weight: 700; font-size: 13px; color: var(--soft); }
+
+  /* end session */
+  .btn-end { background: linear-gradient(135deg, #d8b8f0, #b48ad8); color: #2a1640; border: none; font-size: 15px; padding: 13px; }
+</style>
+</head>
+<body>
+<div class="dock">
+
+  <!-- HEADER -->
+  <div class="hb-header">
+    <div class="hb-logo">
+      <svg viewBox="0 0 32 38" width="24" height="29" aria-hidden="true">
+        <rect x="17" y="1" width="4" height="20" rx="2" transform="rotate(12 19 11)" fill="#ff7eb6"/>
+        <path d="M5 12 L27 12 L24 35 Q24 37 22 37 L10 37 Q8 37 8 35 Z" fill="#fff3d6"/>
+        <path d="M5 12 L27 12 L24 35 Q24 37 22 37 L10 37 Q8 37 8 35 Z" fill="none" stroke="#4a3a12" stroke-width="2"/>
+        <rect x="3" y="8" width="26" height="5" rx="2.5" fill="#4a3a12"/>
+        <circle cx="12" cy="32" r="1.9" fill="#4a3a12"/>
+        <circle cx="17" cy="33" r="1.9" fill="#4a3a12"/>
+        <circle cx="21" cy="31" r="1.9" fill="#4a3a12"/>
+        <circle cx="15" cy="29" r="1.9" fill="#4a3a12"/>
+      </svg>
+    </div>
+    <div>
+      <div class="hb-title">Home Base</div>
+      <div class="hb-sub">Diva Squad Pomodoro</div>
+    </div>
+    <div class="hb-status"><span class="dot"></span> Connected</div>
+  </div>
+
+  <!-- TIMER CONTROL -->
+  <div class="card">
+    <div class="card-title">⏱ Timer</div>
+    <div class="timer-readout">
+      <div class="tr-time">25:00</div>
+      <div class="tr-meta">
+        <div class="tr-set">Set <b>1</b>/4</div>
+        <div class="tr-phase">Work</div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-go">▶ Start</button>
+      <button class="btn-pause">⏸ Pause</button>
+    </div>
+    <div class="btn-row">
+      <button class="btn-ghost btn-sm" id="btnSkip">⏭ Skip</button>
+      <button class="btn-ghost btn-sm" id="btnAdd5">＋5 min</button>
+      <button class="btn-reset btn-sm" id="btnResetTimer">↺ Reset Timer</button>
+    </div>
+  </div>
+
+  <!-- PRESETS + DURATIONS -->
+  <div class="card">
+    <div class="card-title">🍓 Pomodoro Type</div>
+    <div class="presets" style="margin-bottom:13px;">
+      <div class="preset active"><div class="p-name">Classic</div><div class="p-val">25 / 5 / 15</div></div>
+      <div class="preset"><div class="p-name">Deep</div><div class="p-val">50 / 10 / 30</div></div>
+      <div class="preset"><div class="p-name">Sprint</div><div class="p-val">15 / 3 / 10</div></div>
+    </div>
+    <div class="dur-grid">
+      <div class="dur">
+        <div class="dur-lbl">Focus</div>
+        <div class="dur-ctrl"><button>−</button><span class="dur-val">25</span><button>＋</button></div>
+      </div>
+      <div class="dur">
+        <div class="dur-lbl">Break</div>
+        <div class="dur-ctrl"><button>−</button><span class="dur-val">5</span><button>＋</button></div>
+      </div>
+      <div class="dur">
+        <div class="dur-lbl">Long</div>
+        <div class="dur-ctrl"><button>−</button><span class="dur-val">15</span><button>＋</button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADD + MY TASKS -->
+  <div class="card">
+    <div class="card-title">📝 My Tasks</div>
+    <div class="add-row">
+      <input type="text" placeholder="Add a task…">
+      <button class="add-btn">＋</button>
+    </div>
+    <div id="myTaskList"></div>
+  </div>
+
+  <!-- SQUAD LIST -->
+  <div class="card">
+    <div class="card-title">👑 Squad List <span id="sqCount" style="margin-left:auto;color:var(--dim);font-size:11px;text-transform:none;letter-spacing:0;">0 / 0 done</span></div>
+    <div class="squad" id="squadList"></div>
+    <div class="btn-row" style="margin-top:12px;">
+      <button class="btn-ghost btn-sm" id="btnClearDone">🧹 Clear Done</button>
+      <button class="btn-ghost btn-sm" id="btnClearUser">Clear a User…</button>
+    </div>
+  </div>
+
+  <!-- BOBA FLAVOR -->
+  <div class="card">
+    <div class="card-title"><svg viewBox="0 0 32 38" width="15" height="18" style="vertical-align:-2px"><rect x="17" y="1" width="4" height="20" rx="2" transform="rotate(12 19 11)" fill="#ff7eb6"/><path d="M5 12 L27 12 L24 35 Q24 37 22 37 L10 37 Q8 37 8 35 Z" fill="#c9a0e0"/><path d="M5 12 L27 12 L24 35 Q24 37 22 37 L10 37 Q8 37 8 35 Z" fill="none" stroke="#ffe49c" stroke-width="2"/><rect x="3" y="8" width="26" height="5" rx="2.5" fill="#ffe49c"/><circle cx="12" cy="32" r="1.9" fill="#3a2a20"/><circle cx="17" cy="33" r="1.9" fill="#3a2a20"/><circle cx="21" cy="31" r="1.9" fill="#3a2a20"/><circle cx="15" cy="29" r="1.9" fill="#3a2a20"/></svg> Boba Flavor</div>
+    <div class="flavor-row">
+      <div class="flavor-chip">
+        <span class="flavor-dot" style="background:#c9a0e0;color:#c9a0e0;"></span>
+        <span class="flavor-name">Taro</span>
+      </div>
+      <button class="btn-ghost btn-sm" style="flex:0 0 auto;width:auto;padding:9px 14px;">🔀 Shuffle</button>
+    </div>
+    <div class="tog-row" style="margin-top:6px;">
+      <span class="tog-lbl">Auto-cycle each pomo</span>
+      <div class="switch on"><span class="knob"></span></div>
+    </div>
+  </div>
+
+  <!-- GOAL -->
+  <div class="card">
+    <div class="card-title">🎯 Session Goal</div>
+    <div class="goal-row">
+      <div class="dur-ctrl"><button>−</button><span class="dur-val">6</span><button>＋</button></div>
+      <div class="goal-bar"><div class="goal-fill"></div></div>
+      <span class="goal-txt">3 / 6</span>
+    </div>
+  </div>
+
+  <!-- DISPLAY TOGGLES -->
+  <div class="card">
+    <div class="card-title">👁 Show on Overlay</div>
+    <div class="tog-row"><span class="tog-lbl">🎵 Now Playing</span><div class="switch on"><span class="knob"></span></div></div>
+    <div class="tog-row"><span class="tog-lbl">📊 Stats Bar</span><div class="switch on"><span class="knob"></span></div></div>
+    <div class="tog-row"><span class="tog-lbl">💬 Help Panels</span><div class="switch on"><span class="knob"></span></div></div>
+    <div class="tog-row"><span class="tog-lbl">🔔 Sound Cues</span><div class="switch"><span class="knob"></span></div></div>
+  </div>
+
+  <!-- END SESSION -->
+  <div class="card">
+    <button class="btn-end" id="btnEnd" style="width:100%;">🎉 End Session &amp; Show Summary</button>
+    <button class="btn-reset" id="btnResetAll" style="width:100%;margin-top:9px;">⚠ Reset Everything</button>
+    <div style="text-align:center;font-size:11px;color:var(--dim);margin-top:9px;">Tasks stay saved until you reset.</div>
+  </div>
+
+</div>
+
+<script>
+/* ============================================================
+   DEMO INTERACTIVITY (local only — no backend yet)
+   Lets Mary feel how the Home Base works before we wire it up.
+   ============================================================ */
+
+// ---- shared state (declared up front to avoid init-order issues) ----
+let dur = { work:25, brk:5, long:15 };
+let setSize = 4, setPos = 1, phase = 'work';
+let secsLeft = dur.work*60;
+let running = false, tickInt = null;
+let flavorIdx = 0, autoCycle = true;
+let goal = 6, statsPomos = 3, statsFocus = 75*60;
+
+// ====================================================================
+//  BACKEND CONNECTION
+//  URL params:  ?api=<backend url>&key=<CONTROL_KEY>
+//  e.g. asiandiva-homebase.html?api=https://asiandiva-pomodoro.onrender.com&key=YOURKEY
+// ====================================================================
+const params  = new URLSearchParams(location.search);
+const API_BASE = params.get('api') || 'https://asiandiva-pomodoro.onrender.com';
+const KEY      = params.get('key') || '';
+let liveConnected = false;
+
+// send a command to the backend
+async function api(path, body) {
+  try {
+    const res = await fetch(`${API_BASE}${path}?key=${encodeURIComponent(KEY)}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body || {}),
+    });
+    return await res.json();
+  } catch (e) {
+    console.error('api failed', path, e);
+    return { ok:false };
+  }
+}
+
+// reflect backend state into the dock UI
+function applyBackendState(s) {
+  liveConnected = true;
+  setStatus(true);
+  const t = s.timer;
+  dur = { work:t.durations.work, brk:t.durations.break, long:t.durations.long };
+  setSize = t.setSize; setPos = t.setPos;
+  phase = (t.phase === 'break') ? 'brk' : t.phase;   // backend 'break' → dock 'brk'
+  secsLeft = t.secsLeft; running = t.running;
+  statsPomos = s.stats.pomos; statsFocus = s.stats.focusSecs;
+  goal = s.settings.goalPomos || goal;
+  flavorIdx = s.boba.flavorIdx; autoCycle = s.boba.autoCycle;
+  syncDurVals(); renderTimer(); renderGoal(); renderFlavor(); setRunBtns();
+  renderSquad(s.tasks || []);
+  renderMyFromBackend(s.tasks || []);
+}
+
+function setStatus(ok) {
+  const el = document.querySelector('.hb-status');
+  el.innerHTML = ok ? '<span class="dot"></span> Connected'
+                    : '<span class="dot" style="background:#ff7a8a;box-shadow:0 0 8px #ff7a8a"></span> Offline';
+  el.style.color = ok ? 'var(--ds-mint)' : '#ff7a8a';
+}
+
+let es;
+function connectSSE() {
+  es = new EventSource(API_BASE + '/events');
+  es.onmessage = e => { try { applyBackendState(JSON.parse(e.data)); } catch(_){} };
+  es.onerror = () => { setStatus(false); es.close(); setTimeout(connectSSE, 3000); };
+}
+
+// ---------- TIMER ----------
+const PRESETS = {
+  Classic: { work:25, brk:5,  long:15 },
+  Deep:    { work:50, brk:10, long:30 },
+  Sprint:  { work:15, brk:3,  long:10 },
+};
+
+const trTime  = document.querySelector('.tr-time');
+const trSet   = document.querySelector('.tr-set');
+const trPhase = document.querySelector('.tr-phase');
+
+function fmt(s){ const m=Math.floor(s/60),x=s%60; return `${String(m).padStart(2,'0')}:${String(x).padStart(2,'0')}`; }
+function phaseLabel(){ return phase==='work'?'Work':phase==='brk'?'Break':'Long Break'; }
+function curDur(){ return phase==='work'?dur.work:phase==='brk'?dur.brk:dur.long; }
+
+function renderTimer(){
+  trTime.textContent = fmt(secsLeft);
+  trSet.innerHTML = `Set <b>${setPos}</b>/${setSize}`;
+  trPhase.textContent = phaseLabel();
+}
+function advancePhase(){
+  if(phase==='work'){
+    statsPomos++; bumpGoal();
+    phase = (setPos>=setSize) ? 'long' : 'brk';
+  } else {
+    if(phase==='long') setPos=1; else setPos++;
+    phase='work';
+    if(autoCycle){ flavorIdx=(flavorIdx+1)%FLAVORS.length; renderFlavor(); }
+  }
+  secsLeft = curDur()*60;
+}
+function tick(){
+  if(!running) return;
+  if(secsLeft>0){ secsLeft--; if(phase==='work') statsFocus++; }
+  else { advancePhase(); }
+  renderTimer();
+}
+function startTimer(){ api('/timer/start'); }
+function pauseTimer(){ api('/timer/pause'); }
+function setRunBtns(){
+  document.querySelector('.btn-go').style.opacity   = running?0.5:1;
+  document.querySelector('.btn-pause').style.opacity= running?1:0.5;
+}
+document.querySelector('.btn-go').onclick    = startTimer;
+document.querySelector('.btn-pause').onclick = pauseTimer;
+document.getElementById('btnResetTimer').onclick = ()=> api('/timer/reset');
+document.getElementById('btnSkip').onclick = ()=> api('/timer/skip');
+document.getElementById('btnAdd5').onclick = ()=> api('/timer/addtime', { mins: 5 });
+
+// ---------- PRESETS + DURATIONS ----------
+const presetEls = document.querySelectorAll('.preset');
+presetEls.forEach(el=>{
+  el.onclick = ()=>{
+    presetEls.forEach(p=>p.classList.remove('active'));
+    el.classList.add('active');
+    const name = el.querySelector('.p-name').textContent;
+    const d = PRESETS[name];
+    api('/timer/durations', { work:d.work, brk:d.brk, long:d.long });
+  };
+});
+const durVals = document.querySelectorAll('.dur-grid .dur-val');
+function syncDurVals(){ durVals[0].textContent=dur.work; durVals[1].textContent=dur.brk; durVals[2].textContent=dur.long; }
+document.querySelectorAll('.dur-grid .dur').forEach((d,i)=>{
+  const keys=['work','brk','long'];
+  const apiKeys=['work','brk','long'];
+  const [minus,plus]=d.querySelectorAll('button');
+  minus.onclick=()=>{ const v=Math.max(1,dur[keys[i]]-1); markCustom(); api('/timer/durations', { [apiKeys[i]]: v }); };
+  plus.onclick =()=>{ const v=Math.min(180,dur[keys[i]]+1); markCustom(); api('/timer/durations', { [apiKeys[i]]: v }); };
+});
+function markCustom(){ presetEls.forEach(p=>p.classList.remove('active')); }
+
+// ---------- MY TASKS ----------
+const myWrap = [...document.querySelectorAll('.card')].find(c => c.querySelector('.card-title')?.textContent.includes('My Tasks'));
+const addInput = myWrap.querySelector('input');
+const addBtn = myWrap.querySelector('.add-btn');
+const myListEl = document.getElementById('myTaskList');
+
+const MY_NAME = params.get('me') || 'Dave';   // your streamer handle for "my" tasks
+let myTasksData = [];        // filled from backend
+let activeId = null;         // which of my tasks is "working on now" (local marker)
+
+function renderMyFromBackend(allTasks){
+  myTasksData = allTasks.filter(t => t.mine);
+  renderMyTasks();
+}
+
+function renderMyTasks(){
+  myListEl.innerHTML = '';
+  if (!myTasksData.length){
+    myListEl.innerHTML = `<div class="mt-section-label" style="text-align:center;color:var(--dim);">No tasks yet — add one above ✨</div>`;
+    return;
+  }
+  // active = the starred one (if still present & not done), else first not-done
+  let active = myTasksData.find(t => t.id===activeId && !t.done)
+            || myTasksData.find(t => !t.done);
+  const backlog = myTasksData.filter(t => t !== active);
+
+  if (active){
+    myListEl.insertAdjacentHTML('beforeend', `<div class="mt-section-label">✦ Working on now</div>`);
+    myListEl.appendChild(taskRow(active, true));
+  }
+  if (backlog.length){
+    myListEl.insertAdjacentHTML('beforeend', `<div class="mt-section-label">Backlog</div>`);
+    backlog.forEach(t => myListEl.appendChild(taskRow(t, false)));
+  }
+}
+
+function taskRow(t, isActive){
+  const div = document.createElement('div');
+  div.className = 'mt-item' + (t.done?' done':'') + (isActive?' active':'');
+  div.innerHTML =
+    `<div class="mt-check">✓</div>` +
+    `<div class="mt-text">${t.text}</div>` +
+    (isActive ? `<span class="mt-active-tag">Active</span>` : '') +
+    `<button class="mt-star" title="Set as current task">${isActive?'⭐':'☆'}</button>` +
+    `<button class="mt-x" title="Remove">✕</button>`;
+  div.querySelector('.mt-check').onclick = ()=> api('/task/done', { id: t.id });
+  div.querySelector('.mt-star').onclick  = ()=>{ activeId = t.id; renderMyTasks(); };
+  div.querySelector('.mt-x').onclick     = ()=> api('/task/remove', { id: t.id });
+  return div;
+}
+
+addBtn.onclick=()=>{ const v=addInput.value.trim(); if(!v)return; api('/task/add', { user: MY_NAME, text: v, mine: true }); addInput.value=''; };
+addInput.addEventListener('keydown',e=>{ if(e.key==='Enter') addBtn.click(); });
+
+// ---------- SQUAD LIST ----------
+const sqColors = ['#ffe49c','#a8e6cf','#c2b0e8','#ff9ec0','#f2c14e','#e0a93a','#a8e6cf','#c2b0e8'];
+function pomoFmtS(s){ const m=Math.floor(s/60),x=s%60; return `${String(m).padStart(2,'0')}:${String(x).padStart(2,'0')}`; }
+function renderSquad(tasks){
+  const wrap = document.getElementById('squadList');
+  wrap.innerHTML = '';
+  if (!tasks.length){
+    wrap.innerHTML = `<div style="text-align:center;color:var(--dim);font-size:13px;padding:24px 10px;">No squad tasks yet</div>`;
+  }
+  tasks.forEach((t,i)=>{
+    const row=document.createElement('div');
+    row.className='sq-row'+(t.done?' done':'');
+    let right='';
+    if(t.pomoSecs!=null){
+      right = t.pomoLabel==='done'
+        ? `<span class="sq-pomo" style="background:linear-gradient(100deg,var(--ds-mint),var(--ds-mint-deep));">✓</span>`
+        : `<span class="sq-pomo">⏱ ${t.pomoLabel&&t.pomoLabel!=='done'?t.pomoLabel+' ':''}${pomoFmtS(t.pomoSecs)}</span>`;
+    } else {
+      right = `<div class="sq-actions"><button class="sq-mini" title="Remove">✕</button></div>`;
+    }
+    row.innerHTML =
+      `<span class="sq-check">✓</span>`+
+      `<span class="sq-user" style="color:${sqColors[i%sqColors.length]}">${t.user}:</span>`+
+      `<span class="sq-text">${t.text}</span>`+ right;
+    const x = row.querySelector('.sq-mini');
+    if(x) x.onclick = ()=> api('/task/remove', { id: t.id });
+    wrap.appendChild(row);
+  });
+  const done = tasks.filter(t=>t.done).length;
+  document.getElementById('sqCount').textContent = `${done} / ${tasks.length} done`;
+}
+document.getElementById('btnClearDone').onclick=()=> api('/task/cleardone');
+document.getElementById('btnClearUser').onclick=()=>{
+  const u=prompt('Clear all tasks from which user?'); if(!u)return;
+  api('/task/clearuser', { user: u });
+};
+
+// ---------- BOBA FLAVOR ----------
+let FLAVORS_decl;  // (flavorIdx/autoCycle declared up top)
+const FLAVORS=[
+  {n:'Taro',c:'#c9a0e0'},{n:'Strawberry',c:'#ff9ec0'},{n:'Matcha',c:'#a8d878'},
+  {n:'Brown Sugar',c:'#c69060'},{n:'Mango',c:'#ffc24d'},{n:'Peach',c:'#ffb38a'},
+  {n:'Honeydew',c:'#b8e890'},{n:'Lavender',c:'#bcaef0'},{n:'Thai Tea',c:'#e89a5c'},
+  {n:'Blueberry',c:'#9bb8f0'},{n:'Lychee',c:'#f5c6d6'},{n:'Mint',c:'#9ce0c0'},
+];
+const flavorDot=document.querySelector('.flavor-dot');
+const flavorName=document.querySelector('.flavor-name');
+function renderFlavor(){ const f=FLAVORS[flavorIdx % FLAVORS.length]; flavorDot.style.background=f.c; flavorDot.style.color=f.c; flavorName.textContent=f.n; }
+document.querySelector('.flavor-row .btn-ghost').onclick=()=>{ const next=(flavorIdx+1)%40; api('/settings', { bobaIdx: next, bobaAuto: false }); };
+
+// ---------- GOAL ----------
+const goalVal=document.querySelector('.goal-row .dur-val');
+const goalFill=document.querySelector('.goal-fill');
+const goalTxt=document.querySelector('.goal-txt');
+function renderGoal(){ goalVal.textContent=goal; const pct=goal?Math.min(100,statsPomos/goal*100):0; goalFill.style.width=pct+'%'; goalTxt.textContent=`${statsPomos} / ${goal}`; }
+function bumpGoal(){ renderGoal(); }
+const [gMinus,gPlus]=document.querySelectorAll('.goal-row .dur-ctrl button');
+gMinus.onclick=()=>{ api('/settings', { goalPomos: Math.max(0,goal-1) }); };
+gPlus.onclick =()=>{ api('/settings', { goalPomos: goal+1 }); };
+
+// ---------- SWITCHES ----------
+document.querySelectorAll('.switch').forEach(sw=>{
+  sw.onclick=()=>{
+    sw.classList.toggle('on');
+    const on = sw.classList.contains('on');
+    const card = sw.closest('.card').querySelector('.card-title')?.textContent || '';
+    const lbl  = sw.closest('.tog-row')?.querySelector('.tog-lbl')?.textContent || '';
+    if (card.includes('Boba')) { api('/settings', { bobaAuto: on }); return; }
+    if (lbl.includes('Now Playing')) api('/settings', { panels:{ nowPlaying:on } });
+    else if (lbl.includes('Stats'))  api('/settings', { panels:{ stats:on } });
+    else if (lbl.includes('Help'))   api('/settings', { panels:{ help:on } });
+    else if (lbl.includes('Sound'))  api('/settings', { sound:on });
+  };
+});
+
+// ---------- END / RESET ----------
+document.getElementById('btnEnd').onclick=()=>{
+  // tell the widget to show its summary card (broadcast via a tiny settings ping)
+  api('/timer/pause');
+  alert(`Session Summary\n\n📚 ${statsPomos} pomos\n⏱ ${Math.floor(statsFocus/3600)}h ${Math.floor(statsFocus%3600/60)}m focused\n\nNice work! (The widget's summary card shows on stream.)`);
+};
+document.getElementById('btnResetAll').onclick=()=>{
+  if(!confirm('Reset everything? Tasks and stats will clear.')) return;
+  api('/session/reset');
+};
+
+// ---------- INIT ----------
+syncDurVals(); renderTimer(); renderGoal(); renderFlavor(); setRunBtns();
+if (!KEY) setStatus(false);
+connectSSE();
+</script>
+</body>
+</html>

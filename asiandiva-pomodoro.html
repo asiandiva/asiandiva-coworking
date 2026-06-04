@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Diva Squad Co-Working Overlay</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Baloo+2:wght@500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     DIVA SQUAD CO-WORKING OVERLAY
+     Phase 1 — Visual build (DEMO MODE)
+     1920 x 1080 transparent overlay for OBS
+     ============================================================ */
+
+  :root {
+    /* Diva Squad — pastel yellow / gold charm */
+    --ds-gold:      #ffe49c;       /* soft pastel yellow */
+    --ds-gold-deep: #f2c14e;       /* warm honey accent */
+    --ds-amber:     #e0a93a;       /* deep accent for gradients */
+    --ds-cream:     #fff7e0;
+    --ds-mint:      #a8e6cf;       /* checkmarks */
+    --ds-sky:       #c2b0e8;       /* soft lilac (was bright blue) */
+    --ds-done:      #9a8fb0;       /* muted strikethrough */
+
+    /* Panel glass — cute dark (deep plum-navy), semi-transparent */
+    --panel-bg:     rgba(30, 26, 46, 0.42);
+    --panel-bg-hi:  rgba(40, 34, 60, 0.52);
+    --panel-border: rgba(255, 236, 188, 0.26);
+    --panel-text:   #fdf6e3;
+    --panel-soft:   #d8d0e8;
+
+    --shadow-soft:  0 12px 42px rgba(12, 8, 24, 0.55);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 1920px;
+    height: 1080px;
+    overflow: hidden;
+    background: transparent;
+    font-family: 'Quicksand', sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Toggle this in OBS to preview against a stand-in background */
+  body.preview {
+    background:
+      radial-gradient(circle at 72% 58%, #3a2f52 0%, #1a1526 70%) ;
+  }
+
+  .stage { position: absolute; inset: 0; }
+
+  /* ============================================================
+     TASK LIST  (top-left)
+     ============================================================ */
+  .tasklist {
+    position: absolute;
+    top: 28px; left: 28px;
+    width: 520px;
+    height: 540px;
+    background: var(--panel-bg);
+    backdrop-filter: blur(18px) saturate(1.15);
+    -webkit-backdrop-filter: blur(18px) saturate(1.15);
+    border: 1.5px solid var(--panel-border);
+    border-radius: 22px;
+    box-shadow: var(--shadow-soft);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .tl-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 22px;
+    background: linear-gradient(100deg, var(--ds-gold), var(--ds-amber));
+    border-bottom: 1.5px solid rgba(255,255,255,0.15);
+  }
+  .tl-title {
+    font-family: 'Baloo 2', cursive;
+    font-weight: 800;
+    font-size: 24px;
+    color: #4a3a12;
+    letter-spacing: 0.3px;
+    text-shadow: 0 1px 2px rgba(255,255,255,0.25);
+    display: flex; align-items: center; gap: 9px;
+  }
+  .tl-title .crown { font-size: 21px; filter: drop-shadow(0 1px 1px rgba(0,0,0,.15)); }
+  .tl-count {
+    font-weight: 700;
+    font-size: 18px;
+    color: #4a3a12;
+    background: rgba(255,255,255,0.32);
+    padding: 3px 13px;
+    border-radius: 999px;
+  }
+
+  .tl-scroll {
+    position: relative;
+    overflow: hidden;
+    flex: 1;
+    padding: 8px 0;
+    -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 18px, #000 calc(100% - 18px), transparent 100%);
+            mask-image: linear-gradient(to bottom, transparent 0, #000 18px, #000 calc(100% - 18px), transparent 100%);
+  }
+  .tl-track { display: flex; flex-direction: column; min-height: 100%; }
+  /* when only the empty-state is present, center it in the full height */
+  .tl-track:has(> .empty-state) { justify-content: center; }
+
+  .task-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 22px;
+    font-size: 18px;
+    line-height: 1.25;
+  }
+  .task-check {
+    flex: 0 0 auto;
+    width: 19px; height: 19px;
+    display: grid; place-items: center;
+    color: var(--ds-mint);
+    font-size: 17px; font-weight: 700;
+    opacity: 0;
+  }
+  .task-row.done .task-check { opacity: 1; }
+  .task-user {
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .task-text { color: var(--panel-text); font-weight: 500; }
+  .task-row.done .task-text {
+    color: var(--ds-done);
+    text-decoration: line-through;
+    text-decoration-thickness: 2px;
+  }
+  .task-pomo {
+    margin-left: auto;
+    flex: 0 0 auto;
+    display: flex; align-items: center; gap: 7px;
+    background: linear-gradient(100deg, var(--ds-gold), var(--ds-amber));
+    color: #4a3a12; font-weight: 700; font-size: 15px;
+    padding: 3px 11px; border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  /* ============================================================
+     HELP PANELS (bottom-left)
+     ============================================================ */
+  .help-wrap {
+    position: absolute;
+    bottom: 28px; left: 28px;
+    display: flex; gap: 16px;
+  }
+  .help-panel {
+    width: 252px;
+    height: 320px;               /* fixed height — never grows/shrinks */
+    display: flex;
+    flex-direction: column;
+    background: var(--panel-bg);
+    backdrop-filter: blur(18px) saturate(1.15);
+    -webkit-backdrop-filter: blur(18px) saturate(1.15);
+    border: 1.5px solid var(--panel-border);
+    border-radius: 20px;
+    box-shadow: var(--shadow-soft);
+    overflow: hidden;
+  }
+  .help-head { line-height: 1.1; }
+  .help-head {
+    height: 52px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-family: 'Baloo 2', cursive;
+    font-weight: 700;
+    font-size: 18px; color: #4a3a12;
+    text-shadow: 0 1px 1px rgba(255,255,255,0.2);
+    background: linear-gradient(100deg, var(--ds-gold), var(--ds-amber));
+    line-height: 1.1;
+  }
+  .help-body {
+    flex: 1 1 auto;
+    padding: 14px 18px 18px;
+    transition: opacity 0.4s ease;
+    overflow: hidden;            /* content scrolls via inner track */
+    position: relative;
+  }
+  .help-body.fading { opacity: 0; }
+  /* inner scroll track for overflowing backlogs */
+  .help-scroll {
+    height: 100%;
+    overflow: hidden;
+    -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 16px), transparent 100%);
+            mask-image: linear-gradient(to bottom, #000 calc(100% - 16px), transparent 100%);
+  }
+  .help-scroll-inner { display: block; }
+  .my-head-name {
+    display: block; font-size: 12px; font-weight: 600;
+    color: #6b531a; margin-top: 1px; letter-spacing: 0.2px;
+  }
+  .help-section { margin-bottom: 13px; }
+  .help-section:last-child { margin-bottom: 0; }
+  .help-label {
+    font-family: 'Baloo 2', cursive;
+    font-weight: 700; font-size: 15px;
+    color: var(--ds-amber);
+    margin-bottom: 5px;
+  }
+  .help-cmd {
+    font-size: 15px; color: var(--panel-text);
+    padding-left: 8px; margin: 3px 0;
+    font-weight: 500;
+  }
+  .help-cmd b { color: var(--ds-gold-deep); font-weight: 700; }
+
+  /* "My Tasks" backlog list */
+  .my-active { display: flex; align-items: center; gap: 7px; font-size: 15px; color: var(--panel-text); padding-left: 4px; margin: 4px 0 2px; font-weight: 600;}
+  .my-active .spark { color: var(--ds-amber); }
+  .backlog-item {
+    display: flex; align-items: center; gap: 9px;
+    font-size: 15px; color: var(--panel-soft);
+    margin: 6px 0; font-weight: 500;
+  }
+  .bl-num {
+    flex: 0 0 auto;
+    width: 21px; height: 21px;
+    display: grid; place-items: center;
+    border-radius: 50%;
+    background: var(--ds-sky);
+    color: #2f4858; font-weight: 700; font-size: 12px;
+  }
+
+  /* ============================================================
+     POMO TIMER (bottom-right)
+     ============================================================ */
+  .pomo {
+    position: absolute;
+    bottom: 36px; right: 40px;
+    display: flex; align-items: center;
+    background: var(--panel-bg-hi);
+    backdrop-filter: blur(18px) saturate(1.15);
+    -webkit-backdrop-filter: blur(18px) saturate(1.15);
+    border: 2px solid var(--panel-border);
+    border-radius: 26px;
+    box-shadow: var(--shadow-soft);
+    padding: 20px 30px;
+    gap: 20px;
+  }
+  .pomo-main {
+    display: flex; flex-direction: column; gap: 12px;
+    min-width: 300px;
+  }
+  .pomo-toprow {
+    display: flex; align-items: center;
+    gap: 18px;
+  }
+  .pomo-time {
+    font-family: 'Baloo 2', cursive;
+    font-weight: 800; font-size: 46px;
+    color: #fff; letter-spacing: 0.5px; line-height: 1;
+    margin-right: auto;          /* pushes the rest to the right */
+  }
+  .pomo-info { display: flex; flex-direction: column; gap: 2px; align-items: flex-end; }
+  .pomo-cycle {
+    font-family: 'Baloo 2', cursive;
+    font-weight: 700; font-size: 24px; color: #fff;
+    display: flex; align-items: center;
+  }
+  .pomo-cycle .cyc-num { color: var(--ds-amber); }
+  .pomo-phase {
+    font-weight: 600; font-size: 17px;
+    color: var(--panel-soft);
+    text-transform: uppercase; letter-spacing: 1.5px;
+  }
+
+  /* boba travels along this line */
+  .boba-track {
+    position: relative;
+    height: 50px;
+    margin: 0 6px;
+  }
+  .boba-line {
+    position: absolute;
+    left: 0; right: 0; top: 50%;
+    height: 4px; transform: translateY(-50%);
+    background: rgba(255,255,255,0.18);
+    border-radius: 999px;
+  }
+  /* glowing trail AHEAD of the boba — the time remaining; shrinks as boba passes */
+  .boba-fill {
+    position: absolute;
+    right: 0; top: 50%;
+    height: 6px; width: 100%;
+    transform: translateY(-50%);
+    border-radius: 999px;
+    background: var(--boba-color, #c9a0e0);
+    box-shadow: 0 0 10px 2px var(--boba-color, #c9a0e0),
+                0 0 18px 4px var(--boba-color, #c9a0e0);
+    transition: width 0.9s linear;
+  }
+  .boba-cup {
+    position: absolute;
+    top: 50%; left: 0;
+    transform: translate(-50%, -50%);
+    transition: left 0.9s linear;
+    filter: drop-shadow(0 0 8px var(--boba-color, #c9a0e0)) drop-shadow(0 3px 6px rgba(0,0,0,0.35));
+    z-index: 2;
+  }
+  .pomo-emoji { font-size: 30px; line-height: 1; flex: 0 0 auto; }
+
+  /* phase tint on the phase text */
+  .pomo[data-phase="work"]  .pomo-phase { color: var(--ds-amber); }
+  .pomo[data-phase="break"] .pomo-phase { color: var(--ds-mint); }
+  .pomo[data-phase="long"]  .pomo-phase { color: var(--ds-sky); }
+
+  /* ============================================================
+     NOW PLAYING  (top-right)
+     ============================================================ */
+  .nowplaying {
+    position: absolute;
+    top: 30px; right: 40px;
+    width: 360px;
+    display: flex; align-items: center; gap: 14px;
+    background: var(--panel-bg);
+    backdrop-filter: blur(18px) saturate(1.15);
+    -webkit-backdrop-filter: blur(18px) saturate(1.15);
+    border: 1.5px solid var(--panel-border);
+    border-radius: 18px;
+    box-shadow: var(--shadow-soft);
+    padding: 12px 16px;
+  }
+  .np-art {
+    flex: 0 0 auto;
+    width: 54px; height: 54px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--ds-gold), var(--ds-amber));
+    display: grid; place-items: center;
+    overflow: hidden;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+  }
+  .np-art img { width: 100%; height: 100%; object-fit: cover; }
+  .np-art .np-note { font-size: 26px; }
+  .np-info { flex: 1 1 auto; min-width: 0; }
+  .np-label {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 11px; font-weight: 700; letter-spacing: 1px;
+    text-transform: uppercase; color: #1db954;
+    margin-bottom: 2px;
+  }
+  .np-label .dot {
+    width: 7px; height: 7px; border-radius: 50%; background: #1db954;
+    animation: nppulse 1.6s ease-in-out infinite;
+  }
+  @keyframes nppulse { 0%,100%{opacity:1;} 50%{opacity:.35;} }
+  .np-title {
+    font-weight: 700; font-size: 16px; color: var(--panel-text);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .np-artist {
+    font-weight: 500; font-size: 13px; color: var(--panel-soft);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .np-eq { display: flex; align-items: flex-end; gap: 2px; height: 18px; flex: 0 0 auto; }
+  .np-eq span {
+    width: 3px; background: var(--ds-gold); border-radius: 2px;
+    animation: eq 0.9s ease-in-out infinite;
+  }
+  .np-eq span:nth-child(1){ animation-delay: 0s;    height: 40%; }
+  .np-eq span:nth-child(2){ animation-delay: .25s;  height: 75%; }
+  .np-eq span:nth-child(3){ animation-delay: .5s;   height: 55%; }
+  .np-eq span:nth-child(4){ animation-delay: .15s;  height: 90%; }
+  @keyframes eq { 0%,100%{ transform: scaleY(0.4);} 50%{ transform: scaleY(1);} }
+
+  /* ============================================================
+     CENTER POPUP + CONFETTI
+     ============================================================ */
+  .popup-layer {
+    position: absolute; inset: 0;
+    display: grid; place-items: center;
+    pointer-events: none; z-index: 50;
+  }
+  .popup {
+    display: flex; align-items: center; gap: 14px;
+    background: var(--panel-bg-hi);
+    backdrop-filter: blur(16px) saturate(1.1);
+    -webkit-backdrop-filter: blur(16px) saturate(1.1);
+    border: 2px solid var(--panel-border);
+    border-radius: 22px;
+    box-shadow: 0 18px 60px rgba(8, 4, 18, 0.6);
+    padding: 20px 34px;
+    opacity: 0; transform: translateY(24px) scale(0.92);
+  }
+  .popup.show { animation: popIn 0.45s cubic-bezier(.2,1.3,.4,1) forwards; }
+  .popup.hide { animation: popOut 0.4s ease forwards; }
+  @keyframes popIn  { to { opacity:1; transform: translateY(0) scale(1); } }
+  @keyframes popOut { to { opacity:0; transform: translateY(-18px) scale(0.95); } }
+  .popup-emoji { font-size: 40px; }
+  .popup-text { display: flex; flex-direction: column; }
+  .popup-kicker {
+    font-family: 'Baloo 2', cursive; font-weight: 800; font-size: 22px;
+    color: var(--ds-gold);
+  }
+  .popup-sub { font-weight: 600; font-size: 17px; color: var(--panel-text); }
+  .popup-sub b { color: var(--ds-gold-deep); }
+
+  .confetti-piece {
+    position: absolute; top: 0; width: 11px; height: 16px;
+    border-radius: 2px; will-change: transform, opacity;
+  }
+  @keyframes confFall {
+    0%   { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(640px) rotate(720deg); opacity: 0; }
+  }
+
+  /* ============================================================
+     END-OF-SESSION SUMMARY CARD
+     ============================================================ */
+  .summary-overlay {
+    position: absolute; inset: 0;
+    display: grid; place-items: center;
+    background: rgba(16, 12, 28, 0);
+    pointer-events: none; z-index: 60;
+    opacity: 0; transition: opacity 0.5s ease, background 0.5s ease;
+  }
+  .summary-overlay.show { opacity: 1; background: rgba(16, 12, 28, 0.45); }
+  .summary-card {
+    width: 540px;
+    background: var(--panel-bg-hi);
+    backdrop-filter: blur(20px) saturate(1.2);
+    -webkit-backdrop-filter: blur(20px) saturate(1.2);
+    border: 2px solid var(--panel-border);
+    border-radius: 28px;
+    box-shadow: 0 24px 80px rgba(8, 4, 18, 0.7);
+    padding: 40px 44px 36px;
+    text-align: center;
+    transform: translateY(30px) scale(0.94);
+    transition: transform 0.5s cubic-bezier(.2,1.2,.4,1);
+  }
+  .summary-overlay.show .summary-card { transform: translateY(0) scale(1); }
+  .summary-crown { font-size: 46px; margin-bottom: 6px; }
+  .summary-title {
+    font-family: 'Baloo 2', cursive; font-weight: 800; font-size: 34px;
+    color: var(--ds-gold); margin-bottom: 4px;
+  }
+  .summary-sub {
+    font-size: 17px; font-weight: 600; color: var(--panel-soft);
+    margin-bottom: 26px;
+  }
+  .summary-grid {
+    display: flex; justify-content: space-around; align-items: stretch;
+    gap: 14px; margin-bottom: 24px;
+  }
+  .sum-stat {
+    flex: 1 1 0;
+    background: rgba(255,255,255,0.06);
+    border: 1.5px solid rgba(255,255,255,0.1);
+    border-radius: 18px;
+    padding: 18px 10px;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+  }
+  .sum-ico { font-size: 26px; }
+  .sum-val {
+    font-family: 'Baloo 2', cursive; font-weight: 800; font-size: 32px;
+    color: #fff; line-height: 1;
+  }
+  .sum-lbl {
+    font-size: 12px; font-weight: 700; color: var(--panel-soft);
+    text-transform: uppercase; letter-spacing: 0.8px;
+  }
+  .summary-foot {
+    font-size: 16px; font-weight: 600; color: var(--ds-gold-deep);
+    font-style: italic;
+  }
+
+  /* ============================================================
+     BREAK STATE  (dim list + banner)
+     ============================================================ */
+  /* when body.on-break, soften the task list so it reads as "paused" */
+  body.on-break .tasklist,
+  body.on-break .help-wrap {
+    filter: saturate(0.7) brightness(0.82);
+    opacity: 0.78;
+    transition: filter 0.6s ease, opacity 0.6s ease;
+  }
+  .tasklist, .help-wrap { transition: filter 0.6s ease, opacity 0.6s ease; }
+
+  .break-banner {
+    position: absolute;
+    top: 150px; left: 50%;
+    transform: translateX(-50%) translateY(-12px);
+    display: flex; align-items: center; gap: 14px;
+    background: linear-gradient(100deg, rgba(168,230,207,0.92), rgba(122,200,170,0.92));
+    border: 2px solid rgba(255,255,255,0.4);
+    border-radius: 999px;
+    box-shadow: 0 14px 44px rgba(8, 30, 20, 0.45);
+    padding: 16px 34px;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.5s ease, transform 0.5s cubic-bezier(.2,1.2,.4,1);
+    z-index: 40;
+  }
+  body.on-break .break-banner {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  .break-banner .bb-emoji { font-size: 32px; }
+  .break-banner .bb-text {
+    font-family: 'Baloo 2', cursive; font-weight: 800; font-size: 24px;
+    color: #194034; letter-spacing: 0.3px;
+  }
+
+  /* ============================================================
+     SESSION STATS BAR  (under Now Playing, top-right)
+     ============================================================ */
+  .statsbar {
+    position: absolute;
+    top: 124px; right: 40px;
+    width: 360px;                 /* matches the Now Playing width */
+    display: flex; align-items: center; justify-content: space-between;
+    background: var(--panel-bg);
+    backdrop-filter: blur(18px) saturate(1.15);
+    -webkit-backdrop-filter: blur(18px) saturate(1.15);
+    border: 1.5px solid var(--panel-border);
+    border-radius: 18px;
+    box-shadow: var(--shadow-soft);
+    padding: 12px 18px;
+  }
+  .stat {
+    display: flex; flex-direction: column; align-items: center;
+    flex: 1 1 0; gap: 2px;
+  }
+  .stat-top { display: flex; align-items: baseline; gap: 5px; }
+  .stat-ico { font-size: 16px; }
+  .stat-val {
+    font-family: 'Baloo 2', cursive; font-weight: 800; font-size: 22px;
+    color: var(--ds-gold); line-height: 1;
+  }
+  .stat-lbl {
+    font-size: 11px; font-weight: 600; color: var(--panel-soft);
+    text-transform: uppercase; letter-spacing: 0.6px;
+  }
+  .stat-div { width: 1.5px; height: 34px; background: rgba(255,255,255,0.14); flex: 0 0 auto; }
+
+  /* ============================================================
+     EMPTY STATES
+     ============================================================ */
+  .empty-state {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 8px; text-align: center;
+    padding: 30px 20px;
+    color: var(--panel-soft);
+  }
+  .empty-state .es-emoji { font-size: 34px; opacity: 0.9; animation: esBob 2.4s ease-in-out infinite; }
+  @keyframes esBob { 0%,100%{ transform: translateY(0);} 50%{ transform: translateY(-5px);} }
+  .empty-state .es-title { font-family: 'Baloo 2', cursive; font-weight: 700; font-size: 17px; color: var(--ds-gold); }
+  .empty-state .es-sub { font-size: 14px; font-weight: 500; line-height: 1.4; }
+  .empty-state .es-sub b { color: var(--ds-gold-deep); }
+
+  /* ============================================================
+     PAUSED TIMER LOOK
+     ============================================================ */
+  body.paused .pomo .boba-cup { opacity: 0.45; }
+  body.paused .pomo .pomo-time { opacity: 0.55; }
+  body.paused .pomo-emoji { opacity: 0.4; }
+  .pomo-paused-tag {
+    position: absolute; top: -10px; left: 50%; transform: translateX(-50%);
+    background: var(--panel-soft); color: #2a2340;
+    font-weight: 800; font-size: 11px; letter-spacing: 1px;
+    padding: 3px 12px; border-radius: 999px;
+    text-transform: uppercase; opacity: 0; transition: opacity 0.3s;
+  }
+  body.paused .pomo-paused-tag { opacity: 1; }
+</style>
+</head>
+<body class="preview">
+<div class="stage">
+
+  <!-- ===================== TASK LIST ===================== -->
+  <div class="tasklist">
+    <div class="tl-header">
+      <div class="tl-title"><span class="crown">👑</span> Diva Squad Tasks</div>
+      <div class="tl-count" id="tlCount">0 / 0</div>
+    </div>
+    <div class="tl-scroll">
+      <div class="tl-track" id="tlTrack"></div>
+    </div>
+  </div>
+
+  <!-- ===================== HELP PANELS ===================== -->
+  <div class="help-wrap">
+    <!-- LEFT: cycles through viewers' tasks -->
+    <div class="help-panel">
+      <div class="help-head" id="viewerHead">Use the Task List</div>
+      <div class="help-body" id="viewerBody">
+        <!-- filled by JS, cycles through viewers -->
+      </div>
+    </div>
+
+    <!-- RIGHT: My Tasks — static, always Mary's -->
+    <div class="help-panel">
+      <div class="help-head">My Tasks</div>
+      <div class="help-body">
+        <div class="help-scroll"><div class="help-scroll-inner">
+          <div class="help-section">
+            <div class="help-label">Task on List</div>
+            <div class="my-active"><span class="spark">✦</span> Build the Home Base</div>
+          </div>
+          <div class="help-section">
+            <div class="help-label">Backlog</div>
+            <div class="backlog-item"><span class="bl-num">1</span> Edit clips</div>
+            <div class="backlog-item"><span class="bl-num">2</span> Reply to mods</div>
+            <div class="backlog-item"><span class="bl-num">3</span> Plan next stream</div>
+            <div class="backlog-item"><span class="bl-num">4</span> Take a break</div>
+          </div>
+        </div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== POMO TIMER ===================== -->
+  <div class="pomo" id="pomo" data-phase="work">
+    <div class="pomo-paused-tag">Paused</div>
+    <div class="pomo-main">
+      <div class="pomo-toprow">
+        <div class="pomo-time" id="pomoTime">25:00</div>
+        <div class="pomo-info">
+          <div class="pomo-cycle">Set&nbsp;<span class="cyc-num" id="cycNow">1</span>/<span id="cycMax">4</span></div>
+          <div class="pomo-phase" id="pomoPhase">Work</div>
+        </div>
+        <div class="pomo-emoji" id="pomoEmoji">📚</div>
+      </div>
+      <!-- boba slides left→right along this line as time runs down -->
+      <div class="boba-track">
+        <div class="boba-line"></div>
+        <div class="boba-fill" id="bobaFill"></div>
+        <div class="boba-cup" id="bobaCup">
+          <svg viewBox="0 0 40 48" width="40" height="48" aria-hidden="true">
+            <!-- cup body (trapezoid) -->
+            <path id="bobaTea" d="M7 16 L33 16 L30 44 Q30 46 28 46 L12 46 Q10 46 10 44 Z" fill="#d8a7e8"/>
+            <!-- straw -->
+            <rect x="22" y="2" width="5" height="26" rx="2" transform="rotate(12 24 14)" fill="#ff7eb6"/>
+            <!-- cup outline -->
+            <path d="M7 16 L33 16 L30 44 Q30 46 28 46 L12 46 Q10 46 10 44 Z" fill="none" stroke="#fff" stroke-width="2"/>
+            <!-- lid -->
+            <rect x="5" y="12" width="30" height="6" rx="3" fill="#fff"/>
+            <!-- pearls -->
+            <circle cx="15" cy="41" r="2.1" fill="#3a2a20"/>
+            <circle cx="21" cy="42" r="2.1" fill="#3a2a20"/>
+            <circle cx="26" cy="40" r="2.1" fill="#3a2a20"/>
+            <circle cx="18" cy="38" r="2.1" fill="#3a2a20"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===================== NOW PLAYING ===================== -->
+  <div class="nowplaying" id="nowPlaying">
+    <div class="np-art" id="npArt"><span class="np-note">🎵</span></div>
+    <div class="np-info">
+      <div class="np-label"><span class="dot"></span> Now Playing</div>
+      <div class="np-title" id="npTitle">—</div>
+      <div class="np-artist" id="npArtist">—</div>
+    </div>
+    <div class="np-eq"><span></span><span></span><span></span><span></span></div>
+  </div>
+
+  <!-- ===================== POPUP + CONFETTI ===================== -->
+  <div class="popup-layer" id="popupLayer"></div>
+
+  <!-- ===================== SESSION SUMMARY CARD ===================== -->
+  <div class="summary-overlay" id="summaryOverlay">
+    <div class="summary-card">
+      <div class="summary-crown">👑</div>
+      <div class="summary-title">Session Complete!</div>
+      <div class="summary-sub" id="sumSub">Great work today, Diva Squad 💛</div>
+      <div class="summary-grid">
+        <div class="sum-stat">
+          <span class="sum-ico">📚</span>
+          <span class="sum-val" id="sumPomos">0</span>
+          <span class="sum-lbl">Pomos</span>
+        </div>
+        <div class="sum-stat">
+          <span class="sum-ico">⏱</span>
+          <span class="sum-val" id="sumFocus">0m</span>
+          <span class="sum-lbl">Focused</span>
+        </div>
+        <div class="sum-stat">
+          <span class="sum-ico">✅</span>
+          <span class="sum-val" id="sumDone">0</span>
+          <span class="sum-lbl">Tasks Done</span>
+        </div>
+      </div>
+      <div class="summary-foot" id="sumFoot">See you next stream! ✨</div>
+    </div>
+  </div>
+
+  <!-- ===================== BREAK BANNER ===================== -->
+  <div class="break-banner" id="breakBanner">
+    <span class="bb-emoji">☕</span>
+    <span class="bb-text" id="bbText">Break time — stretch &amp; breathe!</span>
+  </div>
+
+  <!-- ===================== SESSION STATS BAR ===================== -->
+  <div class="statsbar" id="statsBar">
+    <div class="stat">
+      <div class="stat-top"><span class="stat-ico">📚</span><span class="stat-val" id="statPomos">0</span></div>
+      <span class="stat-lbl">pomos</span>
+    </div>
+    <div class="stat-div"></div>
+    <div class="stat">
+      <div class="stat-top"><span class="stat-ico">⏱</span><span class="stat-val" id="statFocus">0m</span></div>
+      <span class="stat-lbl">focused</span>
+    </div>
+    <div class="stat-div"></div>
+    <div class="stat">
+      <div class="stat-top"><span class="stat-ico">✅</span><span class="stat-val" id="statDone">0</span></div>
+      <span class="stat-lbl">tasks done</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ================================================================
+   DEMO ENGINE  (Phase 1)
+   Fake data + a running timer so we can judge the look.
+   No IRC yet — that's Phase 2 along with the Home Base.
+   ================================================================ */
+
+// ---- Demo task list (mix of done / active / personal-pomo) ----
+// pomoSecs = remaining seconds on a viewer's PERSONAL timer (ticks down live).
+// pomoLabel optional set indicator like "4/4". null pomoSecs = no personal timer.
+const demoTasks = [
+  { user: 'aezylla',            text: 'Read Chapter 1',                done: true,  pomoSecs: null },
+  { user: 'emorganart',         text: 'Finish one coding challenge',   done: false, pomoSecs: null },
+  { user: 'medigatorrr',        text: 'Write unit tests',              done: false, pomoSecs: 8 * 60,  pomoLabel: '2/4' },
+  { user: 'angestudynurse',     text: 'Read articles 20 min',          done: true,  pomoSecs: null },
+  { user: 'xowilough',          text: 'Wash the dishes',               done: false, pomoSecs: null },
+  { user: '4l1c3_0',            text: 'Water the plants',              done: true,  pomoSecs: null },
+  { user: 'khrowv',             text: 'Study a new concept',           done: false, pomoSecs: 25 * 60, pomoLabel: '1/3' },
+  { user: 'hyjules',            text: 'Practice language 30 min',      done: false, pomoSecs: null },
+  { user: 'daisy_the_flower_cow', text: 'Build a CSS stylesheet',      done: false, pomoSecs: null },
+  { user: 'supernaturalwriter', text: 'Write essay intro',             done: false, pomoSecs: null },
+  { user: 'Teresa',             text: 'Edit weekend VOD',              done: false, pomoSecs: 15 * 60 },
+  { user: 'StudyBuddy',         text: 'Tidy up',                       done: false, pomoSecs: null },
+];
+
+function pomoFmt(s){ const m=Math.floor(s/60), ss=s%60; return `${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`; }
+
+// pastel name colors (cycled)
+const nameColors = ['#ffe49c','#f2c14e','#a8e6cf','#a6d8ff','#ffd59e','#e0a93a','#ffe49c','#a8e6cf','#a6d8ff','#f2c14e','#ffd59e','#a8e6cf'];
+
+function buildTaskRow(t, i) {
+  const row = document.createElement('div');
+  row.className = 'task-row' + (t.done ? ' done' : '');
+  let badge = '';
+  if (t.pomoSecs != null) {
+    const lbl = t.pomoLabel ? `${t.pomoLabel} ` : '';
+    badge = `<span class="task-pomo" id="pomoBadge${i}">⏱ ${lbl}${pomoFmt(t.pomoSecs)}</span>`;
+  }
+  row.innerHTML =
+    `<span class="task-check">✓</span>` +
+    `<span class="task-user" style="color:${nameColors[i % nameColors.length]}">${t.user}:</span>` +
+    `<span class="task-text">${t.text}</span>` +
+    badge;
+  return row;
+}
+
+function renderTasks() {
+  const track = document.getElementById('tlTrack');
+  track.innerHTML = '';
+  if (demoTasks.length === 0) {
+    track.innerHTML = `<div class="empty-state">
+        <div class="es-emoji">📚</div>
+        <div class="es-title">No tasks yet!</div>
+        <div class="es-sub">Type <b>!task</b> &lt;your task&gt; in chat<br>to join the co-working session ✨</div>
+      </div>`;
+    document.getElementById('tlCount').textContent = `0 / 0`;
+    return;
+  }
+  demoTasks.forEach((t,i)=> track.appendChild(buildTaskRow(t,i)));
+  const doneCount = demoTasks.filter(t=>t.done).length;
+  document.getElementById('tlCount').textContent = `${doneCount} / ${demoTasks.length}`;
+}
+
+// ---- Per-viewer personal pomo timers (tick down live on each row) ----
+function tickViewerPomos() {
+  if (isPaused) return;   // freeze personal timers too when room is paused
+  demoTasks.forEach((t, i) => {
+    if (t.pomoSecs == null) return;
+    const badge = document.getElementById('pomoBadge' + i);
+    if (!badge) return;
+    if (t.pomoSecs > 0) {
+      t.pomoSecs--;
+      const lbl = t.pomoLabel ? `${t.pomoLabel} ` : '';
+      badge.textContent = `⏱ ${lbl}${pomoFmt(t.pomoSecs)}`;
+      if (t.pomoSecs <= 30) badge.style.background = 'linear-gradient(100deg, #ff9ecb, #f06fae)'; // warn pink near end
+    } else {
+      // finished personal timer
+      badge.textContent = '✓ done';
+      badge.style.background = 'linear-gradient(100deg, var(--ds-mint), #7ac8aa)';
+      badge.style.color = '#194034';
+      t.pomoSecs = null;   // stop ticking this one
+    }
+  });
+}
+
+// ---- Demo viewer backlogs (for the cycling "My Tasks" panel) ----
+// Each viewer has an active task + a numbered backlog.
+const demoBacklogs = [
+  { user: 'Teresa',     active: 'Edit weekend VOD',
+    backlog: ['Cut highlights', 'Upload to channel', 'Write titles', 'Schedule post'] },
+  { user: 'khrowv',     active: 'Study a new concept',
+    backlog: ['Read docs', 'Take notes', 'Build example', 'Quiz myself'] },
+  { user: 'hyjules',    active: 'Practice language 30 min',
+    backlog: ['Flashcards', 'Listen podcast', 'Speak aloud', 'Review grammar', 'Watch show'] },
+  { user: 'emorganart', active: 'Finish coding challenge',
+    backlog: ['Sketch idea', 'Write tests', 'Refactor', 'Push to repo'] },
+];
+
+let myIdx = 0;
+let viewerScrollTimer = null;
+let showingCommands = false;
+
+// Commands help screen content (shown after cycling all viewers)
+function commandsScreenHTML() {
+  return `<div class="help-scroll"><div class="help-scroll-inner">
+      <div class="help-section">
+        <div class="help-label">Add a task</div>
+        <div class="help-cmd"><b>!now</b> Tidy up</div>
+        <div class="help-cmd"><b>!later</b> Edit clips</div>
+      </div>
+      <div class="help-section">
+        <div class="help-label">Your timer</div>
+        <div class="help-cmd"><b>!pomo</b> 20 Study</div>
+        <div class="help-cmd"><b>!pomo</b> 20/5/3 Chores</div>
+      </div>
+      <div class="help-section">
+        <div class="help-label">Manage</div>
+        <div class="help-cmd"><b>!done</b> &nbsp; <b>!backlog</b></div>
+      </div>
+    </div></div>`;
+}
+
+function renderViewerTasks() {
+  const head = document.getElementById('viewerHead');
+  const body = document.getElementById('viewerBody');
+
+  // no viewers have backlogs yet → friendly empty state
+  if (demoBacklogs.length === 0) {
+    head.innerHTML = `Use the Task List`;
+    body.innerHTML = `<div class="help-scroll"><div class="help-scroll-inner">
+        <div class="empty-state">
+          <div class="es-emoji">🗒️</div>
+          <div class="es-title">Your backlog awaits</div>
+          <div class="es-sub">Use <b>!now</b> and <b>!later</b><br>to line up your tasks!</div>
+        </div></div></div>`;
+    return;
+  }
+
+  body.classList.add('fading');
+  setTimeout(() => {
+    if (viewerScrollTimer) { clearInterval(viewerScrollTimer); viewerScrollTimer = null; }
+
+    if (showingCommands) {
+      // ---- commands help screen ----
+      head.innerHTML = `Squad Commands`;
+      body.innerHTML = commandsScreenHTML();
+      body.classList.remove('fading');
+      showingCommands = false;
+      myIdx = 0;
+      // hold the commands screen for 30s, then resume viewer cycle
+      clearInterval(viewerCycle);
+      viewerCycle = setTimeout(() => {
+        renderViewerTasks();
+        viewerCycle = setInterval(renderViewerTasks, VIEWER_INTERVAL);
+      }, 30000);
+      return;
+    }
+
+    // ---- a viewer's tasks ----
+    const v = demoBacklogs[myIdx];
+    head.innerHTML = `${v.user}'s Tasks`;
+    let inner = `<div class="help-section">
+        <div class="help-label">Task on List</div>
+        <div class="my-active"><span class="spark">✦</span> ${v.active}</div>
+      </div>
+      <div class="help-section">
+        <div class="help-label">Backlog</div>`;
+    v.backlog.forEach((t, i) => {
+      inner += `<div class="backlog-item"><span class="bl-num">${i+1}</span> ${t}</div>`;
+    });
+    inner += `</div>`;
+    body.innerHTML = `<div class="help-scroll"><div class="help-scroll-inner">${inner}</div></div>`;
+    body.classList.remove('fading');
+
+    // auto-scroll this viewer's list if it overflows the fixed panel height
+    const scroll = body.querySelector('.help-scroll');
+    const innerEl = body.querySelector('.help-scroll-inner');
+    let pos = 0;
+    viewerScrollTimer = setInterval(() => {
+      const overflow = innerEl.scrollHeight - scroll.clientHeight;
+      if (overflow <= 0) return;
+      pos += 0.3;
+      if (pos > overflow + 24) pos = -8;
+      innerEl.style.transform = `translateY(${-Math.max(0, pos)}px)`;
+    }, 30);
+
+    // advance; after the last viewer, next render is the commands screen
+    myIdx++;
+    if (myIdx >= demoBacklogs.length) { showingCommands = true; }
+  }, 400);
+}
+
+// ---- Pomo timer (demo countdown) ----
+const PHASES = {
+  work:  { label: 'Work',       mins: 25, emoji: '📚', color: 'work'  },
+  break: { label: 'Break',      mins: 5,  emoji: '🧋', color: 'break' },
+  long:  { label: 'Long Break', mins: 15, emoji: '🧋', color: 'long'  },
+};
+const SET_SIZE = 4;          // pomos per set before a long break
+let setPos = 1;              // which pomo in the current set (1..4)
+let totalPomos = 0;         // lifetime pomos completed this session
+let focusSecs = 0;          // lifetime focused seconds this session
+let tasksDone = 0;          // lifetime tasks completed this session
+let phase = 'work';
+let secsLeft = PHASES.work.mins * 60;
+
+// Boba flavors — cycles to a new one each work session
+const BOBA_FLAVORS = [
+  { name: 'Taro',          tea: '#c9a0e0' },
+  { name: 'Strawberry',    tea: '#ff9ec0' },
+  { name: 'Matcha',        tea: '#a8d878' },
+  { name: 'Brown Sugar',   tea: '#c69060' },
+  { name: 'Mango',         tea: '#ffc24d' },
+  { name: 'Peach',         tea: '#ffb38a' },
+  { name: 'Honeydew',      tea: '#b8e890' },
+  { name: 'Lavender',      tea: '#bcaef0' },
+  { name: 'Thai Tea',      tea: '#e89a5c' },
+  { name: 'Blueberry',     tea: '#9bb8f0' },
+  { name: 'Lychee',        tea: '#f5c6d6' },
+  { name: 'Passionfruit',  tea: '#ffcf5c' },
+  { name: 'Coconut',       tea: '#eef0e2' },
+  { name: 'Watermelon',    tea: '#ff8c94' },
+  { name: 'Grape',         tea: '#b48ad8' },
+  { name: 'Green Apple',   tea: '#bfe06a' },
+  { name: 'Rose',          tea: '#f3a6c0' },
+  { name: 'Pandan',        tea: '#8fd99a' },
+  { name: 'Caramel',       tea: '#d9a866' },
+  { name: 'Black Sesame',  tea: '#8a8090' },
+  { name: 'Pineapple',     tea: '#ffe07a' },
+  { name: 'Wintermelon',   tea: '#cdb98a' },
+  { name: 'Jasmine',       tea: '#eae3c2' },
+  { name: 'Oolong',        tea: '#c79a6a' },
+  { name: 'Honey',         tea: '#ffd86b' },
+  { name: 'Raspberry',     tea: '#e8709a' },
+  { name: 'Blue Raspberry',tea: '#7ec0e8' },
+  { name: 'Cantaloupe',    tea: '#ffba7a' },
+  { name: 'Kiwi',          tea: '#a6d860' },
+  { name: 'Vanilla',       tea: '#f0e4c8' },
+  { name: 'Chocolate',     tea: '#9c6b4a' },
+  { name: 'Mint',          tea: '#9ce0c0' },
+  { name: 'Dragonfruit',   tea: '#f48ac0' },
+  { name: 'Guava',         tea: '#ffaf9c' },
+  { name: 'Banana',        tea: '#ffe07e' },
+  { name: 'Pomegranate',   tea: '#e07a8a' },
+  { name: 'Lemon',         tea: '#ffe85c' },
+  { name: 'Hokkaido',      tea: '#d8b890' },
+  { name: 'Ube',           tea: '#a884d8' },
+  { name: 'Cherry Blossom',tea: '#f7b8cf' },
+];
+let flavorIdx = 0;
+function applyBobaFlavor() {
+  const f = BOBA_FLAVORS[flavorIdx % BOBA_FLAVORS.length];
+  document.getElementById('bobaTea').setAttribute('fill', f.tea);
+  document.getElementById('pomo').style.setProperty('--boba-color', f.tea);
+}
+
+function fmt(s){ const m=Math.floor(s/60), ss=s%60; return `${String(m).padStart(2,'0')}:${String(ss).padStart(2,'0')}`; }
+function fmtFocus(s){ const h=Math.floor(s/3600), m=Math.floor((s%3600)/60); return h>0?`${h}h ${m}m`:`${m}m`; }
+
+function renderTimer() {
+  const p = PHASES[phase];
+  const total = p.mins * 60;
+  document.getElementById('pomoTime').textContent = fmt(secsLeft);
+  document.getElementById('cycNow').textContent = setPos;
+  document.getElementById('cycMax').textContent = SET_SIZE;
+  document.getElementById('pomoPhase').textContent = p.label;
+  document.getElementById('pomoEmoji').textContent = p.emoji;
+  document.getElementById('pomo').dataset.phase = p.color;
+  // boba slides left→right as time runs DOWN; colored line ahead = time remaining
+  const elapsed = 1 - (secsLeft / total);
+  const remaining = secsLeft / total;
+  document.getElementById('bobaCup').style.left = (elapsed * 100) + '%';
+  document.getElementById('bobaFill').style.width = (remaining * 100) + '%';
+}
+
+function renderStats() {
+  document.getElementById('statPomos').textContent = totalPomos;
+  document.getElementById('statFocus').textContent = fmtFocus(focusSecs);
+  document.getElementById('statDone').textContent  = tasksDone;
+}
+
+function setBreakState(on, longBreak) {
+  document.body.classList.toggle('on-break', on);
+  if (on) {
+    document.getElementById('bbText').textContent = longBreak
+      ? 'Long break — you earned it! 🌸'
+      : 'Break time — stretch & breathe!';
+  }
+}
+
+function tick() {
+  if (isPaused) return;        // frozen while paused
+  secsLeft--;
+  if (phase === 'work') { focusSecs++; }   // count focused time during work
+  if (secsLeft < 0) {
+    if (phase === 'work') {
+      // finished a work pomo
+      totalPomos++;
+      const endOfSet = (setPos >= SET_SIZE);
+      phase = endOfSet ? 'long' : 'break';
+      setBreakState(true, endOfSet);
+    } else {
+      // break finished → back to work
+      if (phase === 'long') { setPos = 1; }     // new set
+      else { setPos++; }                        // next pomo in set
+      phase = 'work';
+      setBreakState(false, false);
+      flavorIdx++;            // new boba flavor each work session
+      applyBobaFlavor();
+    }
+    secsLeft = PHASES[phase].mins * 60;
+    renderStats();
+  }
+  renderTimer();
+}
+
+
+// ---- Now Playing (DEMO songs — real Spotify on roadmap) ----
+const demoSongs = [
+  { title: 'Sweet Nothing',        artist: 'Velvet Sky' },
+  { title: 'Late Night Study',     artist: 'lofi girl' },
+  { title: 'Honey & Gold',         artist: 'Mira Sol' },
+  { title: 'Cozy Corner',          artist: 'Bloom Tape' },
+];
+let songIdx = 0;
+function renderNowPlaying() {
+  const s = demoSongs[songIdx];
+  document.getElementById('npTitle').textContent = s.title;
+  document.getElementById('npArtist').textContent = s.artist;
+  songIdx = (songIdx + 1) % demoSongs.length;
+}
+
+// ---- Center popup (new task / completed task) ----
+let popupTimer = null;
+function showPopup(kind, user, task) {
+  const layer = document.getElementById('popupLayer');
+  const isDone = kind === 'done';
+  if (isDone) { tasksDone++; renderStats(); }
+  const el = document.createElement('div');
+  el.className = 'popup show';
+  el.innerHTML =
+    `<div class="popup-emoji">${isDone ? '🎉' : '📝'}</div>
+     <div class="popup-text">
+       <div class="popup-kicker">${isDone ? 'Task Complete!' : 'New Task!'}</div>
+       <div class="popup-sub"><b>${user}</b> ${isDone ? 'finished' : 'added'} "${task}"</div>
+     </div>`;
+  layer.innerHTML = '';
+  layer.appendChild(el);
+  if (isDone) burstConfetti();
+  clearTimeout(popupTimer);
+  popupTimer = setTimeout(() => {
+    el.classList.remove('show'); el.classList.add('hide');
+    setTimeout(() => { if (el.parentNode) el.remove(); }, 400);
+  }, 3000);
+}
+
+// ---- Confetti ----
+function burstConfetti() {
+  const layer = document.getElementById('popupLayer');
+  const colors = ['#ffe49c','#f2c14e','#a8e6cf','#a6d8ff','#ffb3d9','#c9b6ff'];
+  const cx = 960, cy = 540;
+  for (let i = 0; i < 70; i++) {
+    const p = document.createElement('div');
+    p.className = 'confetti-piece';
+    p.style.background = colors[i % colors.length];
+    const x = cx + (Math.random() - 0.5) * 380;
+    p.style.left = x + 'px';
+    p.style.top  = (cy - 40) + 'px';
+    const dur = 1.6 + Math.random() * 1.4;
+    p.style.animation = `confFall ${dur}s ease-in forwards`;
+    p.style.animationDelay = (Math.random() * 0.25) + 's';
+    layer.appendChild(p);
+    setTimeout(() => { if (p.parentNode) p.remove(); }, (dur + 0.3) * 1000);
+  }
+}
+
+// ---- Pause toggle (used later by Home Base) ----
+let isPaused = false;
+function setPaused(on) {
+  isPaused = on;
+  document.body.classList.toggle('paused', on);
+}
+
+// ---- End-of-session summary (called by Home Base "End Session") ----
+function showSessionSummary() {
+  document.getElementById('sumPomos').textContent = totalPomos;
+  document.getElementById('sumFocus').textContent = fmtFocus(focusSecs);
+  document.getElementById('sumDone').textContent  = tasksDone;
+  // a little warmth based on how the session went
+  let foot = 'See you next stream! ✨';
+  if (totalPomos >= 8)      foot = 'Incredible focus today! 🔥';
+  else if (totalPomos >= 4) foot = 'Solid session — proud of us! 💛';
+  else if (totalPomos >= 1) foot = 'Every pomo counts! 🌱';
+  document.getElementById('sumFoot').textContent = foot;
+
+  const ov = document.getElementById('summaryOverlay');
+  ov.classList.add('show');
+  setTimeout(burstConfetti, 300);
+  setTimeout(burstConfetti, 900);
+}
+function hideSessionSummary() {
+  document.getElementById('summaryOverlay').classList.remove('show');
+}
+
+// ====================================================================
+//  LIVE MODE — connect to the backend via SSE
+//  Backend URL can be overridden with ?api=  (defaults below)
+// ====================================================================
+const API_BASE = new URLSearchParams(location.search).get('api')
+              || 'https://asiandiva-pomodoro.onrender.com';
+
+// map backend phase keys -> widget phase keys (backend uses 'break', widget too)
+function applyBackendState(s) {
+  // timer
+  const t = s.timer;
+  phase    = t.phase;                 // work | break | long
+  secsLeft = t.secsLeft;
+  setPos   = t.setPos;
+  // durations drive PHASES so the boba bar fraction is correct
+  PHASES.work.mins  = t.durations.work;
+  PHASES.break.mins = t.durations.break;
+  PHASES.long.mins  = t.durations.long;
+  window._setSize   = t.setSize;
+  // stats
+  totalPomos = s.stats.pomos;
+  focusSecs  = s.stats.focusSecs;
+  tasksDone  = s.stats.tasksDone;
+  // boba
+  flavorIdx  = s.boba.flavorIdx;
+  applyBobaFlavor();
+  // now playing
+  if (s.nowPlaying && (s.nowPlaying.title || s.nowPlaying.artist)) {
+    document.getElementById('npTitle').textContent  = s.nowPlaying.title || '—';
+    document.getElementById('npArtist').textContent = s.nowPlaying.artist || '';
+    document.getElementById('nowPlaying').style.display = '';
+  }
+  // panel visibility toggles
+  const pv = s.settings && s.settings.panels;
+  if (pv) {
+    document.getElementById('nowPlaying').style.display = pv.nowPlaying ? '' : 'none';
+    document.getElementById('statsBar').style.display   = pv.stats ? '' : 'none';
+    document.querySelector('.help-wrap').style.display  = pv.help ? '' : 'none';
+  }
+  // tasks → render squad list + viewer panel
+  liveTasks    = s.tasks || [];
+  liveBacklogs = buildBacklogs(s.tasks || []);
+  renderTimer();
+  renderStats();
+  renderLiveTasks();
+}
+
+// rebuild per-viewer backlogs from the flat task list for the cycling panel
+function buildBacklogs(tasks) {
+  const byUser = {};
+  tasks.filter(t => !t.done).forEach(t => {
+    if (!byUser[t.user]) byUser[t.user] = { user: t.user, active: null, backlog: [] };
+    if (!byUser[t.user].active) byUser[t.user].active = t.text;
+    else byUser[t.user].backlog.push(t.text);
+  });
+  return Object.values(byUser);
+}
+
+// render the main squad list from live tasks
+let liveTasks = [], liveBacklogs = [];
+function renderLiveTasks() {
+  const track = document.getElementById('tlTrack');
+  track.innerHTML = '';
+  if (liveTasks.length === 0) {
+    track.innerHTML = `<div class="empty-state">
+        <div class="es-emoji">📚</div>
+        <div class="es-title">No tasks yet!</div>
+        <div class="es-sub">Type <b>!task</b> &lt;your task&gt; in chat<br>to join the co-working session ✨</div>
+      </div>`;
+    document.getElementById('tlCount').textContent = `0 / 0`;
+    return;
+  }
+  liveTasks.forEach((t, i) => {
+    const row = document.createElement('div');
+    row.className = 'task-row' + (t.done ? ' done' : '');
+    let badge = '';
+    if (t.pomoSecs != null) {
+      const lbl = (t.pomoLabel && t.pomoLabel !== 'done') ? `${t.pomoLabel} ` : (t.pomoLabel === 'done' ? '' : '');
+      badge = t.pomoLabel === 'done'
+        ? `<span class="task-pomo" style="background:linear-gradient(100deg,var(--ds-mint),#7ac8aa);color:#194034;">✓ done</span>`
+        : `<span class="task-pomo">⏱ ${lbl}${pomoFmt(t.pomoSecs)}</span>`;
+    }
+    row.innerHTML =
+      `<span class="task-check">✓</span>` +
+      `<span class="task-user" style="color:${nameColors[i % nameColors.length]}">${t.user}:</span>` +
+      `<span class="task-text">${t.text}</span>` + badge;
+    track.appendChild(row);
+  });
+  const doneCount = liveTasks.filter(t => t.done).length;
+  document.getElementById('tlCount').textContent = `${doneCount} / ${liveTasks.length}`;
+}
+
+// override the cycling viewer panel to use live backlogs
+const _origRenderViewer = renderViewerTasks;
+renderViewerTasks = function() {
+  demoBacklogs.length = 0;
+  liveBacklogs.forEach(b => demoBacklogs.push(b));
+  _origRenderViewer();
+};
+
+// connect SSE
+let es;
+function connectSSE() {
+  es = new EventSource(API_BASE + '/events');
+  es.onmessage = (e) => {
+    try { applyBackendState(JSON.parse(e.data)); } catch (_) {}
+  };
+  es.onerror = () => { es.close(); setTimeout(connectSSE, 3000); };  // auto-reconnect
+}
+
+// ---- boot ----
+const VIEWER_INTERVAL = 5000;
+let viewerCycle = null;
+applyBobaFlavor();
+renderTimer();
+renderStats();
+connectSSE();                                  // ← live data drives everything now
+viewerCycle = setInterval(renderViewerTasks, VIEWER_INTERVAL);
+
+// gentle auto-scroll for the task list when it overflows
+(function autoScroll(){
+  const scroll = document.querySelector('.tl-scroll');
+  const track  = document.getElementById('tlTrack');
+  let pos = 0;
+  setInterval(()=>{
+    const overflow = track.scrollHeight - scroll.clientHeight;
+    if (overflow <= 0) return;
+    pos += 0.4;
+    if (pos > overflow + 30) pos = -10;
+    track.style.transform = `translateY(${-Math.max(0,pos)}px)`;
+  }, 30);
+})();
+</script>
+</body>
+</html>
