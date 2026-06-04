@@ -186,7 +186,7 @@
   }
   .help-body {
     flex: 1 1 auto;
-    padding: 14px 18px 18px;
+    padding: 10px 16px 10px;
     transition: opacity 0.4s ease;
     overflow: hidden;            /* content scrolls via inner track */
     position: relative;
@@ -221,17 +221,17 @@
 
   /* compact command list (fits all commands in the box) */
   .help-cmd2 {
-    display: flex; align-items: baseline; gap: 8px;
-    padding: 9px 4px;
+    display: flex; align-items: baseline; gap: 7px;
+    padding: 6px 4px;
     border-bottom: 1px solid rgba(255,255,255,0.06);
-    font-size: 15px;
+    font-size: 14px;
   }
   .help-cmd2:last-child { border-bottom: none; }
   .help-cmd2 b {
     color: var(--ds-gold); font-weight: 800;
     font-family: 'Baloo 2', cursive; white-space: nowrap;
   }
-  .help-cmd2 span { color: var(--panel-soft); font-size: 13px; }
+  .help-cmd2 span { color: var(--panel-soft); font-size: 12px; }
 
   /* "My Tasks" backlog list */
   .my-active { display: flex; align-items: center; gap: 7px; font-size: 15px; color: var(--panel-text); padding-left: 4px; margin: 4px 0 2px; font-weight: 600;}
@@ -834,14 +834,14 @@ let showingCommands = false;
 
 // Commands help screen content (shown after cycling all viewers)
 function commandsScreenHTML() {
-  return `<div class="help-scroll"><div class="help-scroll-inner">
+  return `<div class="cmd-list">
       <div class="help-cmd2"><b>!task</b> <span>add a task</span></div>
       <div class="help-cmd2"><b>!done</b> <span>finish current task</span></div>
       <div class="help-cmd2"><b>!now</b> <span>switch active task</span></div>
       <div class="help-cmd2"><b>!later</b> <span>add to backlog</span></div>
       <div class="help-cmd2"><b>!backlog</b> <span>see your list</span></div>
       <div class="help-cmd2"><b>!pomo 20</b> <span>start a timer</span></div>
-    </div></div>`;
+    </div>`;
 }
 
 function renderViewerTasks() {
