@@ -1253,6 +1253,15 @@ function connectSSE() {
   es.onmessage = (e) => {
     try { applyBackendState(JSON.parse(e.data)); } catch (_) {}
   };
+  // one-shot actions from chat commands: popups, confetti, summary
+  es.addEventListener('action', (e) => {
+    try {
+      const a = JSON.parse(e.data);
+      if (a.type === 'popup')    showPopup(a.kind, a.user, a.task);
+      else if (a.type === 'confetti') burstConfetti();
+      else if (a.type === 'summary')  showSessionSummary();
+    } catch (_) {}
+  });
   es.onerror = () => { es.close(); setTimeout(connectSSE, 3000); };  // auto-reconnect
 }
 
