@@ -633,9 +633,7 @@ document.querySelectorAll('.switch').forEach(sw=>{
 
 // ---------- END / RESET ----------
 document.getElementById('btnEnd').onclick=()=>{
-  // tell the widget to show its summary card (broadcast via a tiny settings ping)
-  api('/timer/pause');
-  alert(`Session Summary\n\n📚 ${statsPomos} pomos\n⏱ ${Math.floor(statsFocus/3600)}h ${Math.floor(statsFocus%3600/60)}m focused\n\nNice work! (The widget's summary card shows on stream.)`);
+  api('/session/summary');   // shows the summary card on the widget + pauses
 };
 document.getElementById('btnResetAll').onclick=()=>{
   if(!confirm('Reset everything? Tasks and stats will clear.')) return;
