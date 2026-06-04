@@ -822,18 +822,27 @@ let showingCommands = false;
 function commandsScreenHTML() {
   return `<div class="help-scroll"><div class="help-scroll-inner">
       <div class="help-section">
-        <div class="help-label">Add a task</div>
-        <div class="help-cmd"><b>!now</b> Tidy up</div>
-        <div class="help-cmd"><b>!later</b> Edit clips</div>
+        <div class="help-label">📋 Add tasks</div>
+        <div class="help-cmd"><b>!task</b> tidy my desk</div>
+        <div class="help-cmd" style="opacity:.75;font-size:.85em;">first one = active, rest = backlog</div>
       </div>
       <div class="help-section">
-        <div class="help-label">Your timer</div>
+        <div class="help-label">✅ Finish a task</div>
+        <div class="help-cmd"><b>!done</b> <span style="opacity:.7">(or !done dishes)</span></div>
+        <div class="help-cmd" style="opacity:.75;font-size:.85em;">next task moves up automatically</div>
+      </div>
+      <div class="help-section">
+        <div class="help-label">🔄 Switch tasks</div>
+        <div class="help-cmd"><b>!now</b> read chapter 3</div>
+        <div class="help-cmd" style="opacity:.75;font-size:.85em;">jump to a backlog task</div>
+      </div>
+      <div class="help-section">
+        <div class="help-label">⏱ Personal timer</div>
         <div class="help-cmd"><b>!pomo</b> 20 Study</div>
-        <div class="help-cmd"><b>!pomo</b> 20/5/3 Chores</div>
       </div>
       <div class="help-section">
-        <div class="help-label">Manage</div>
-        <div class="help-cmd"><b>!done</b> &nbsp; <b>!backlog</b></div>
+        <div class="help-label">👀 See your list</div>
+        <div class="help-cmd"><b>!backlog</b></div>
       </div>
     </div></div>`;
 }
