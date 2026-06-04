@@ -1148,6 +1148,12 @@ function applyBackendState(s) {
   if (s.nowPlaying && (s.nowPlaying.title || s.nowPlaying.artist)) {
     document.getElementById('npTitle').textContent  = s.nowPlaying.title || '—';
     document.getElementById('npArtist').textContent = s.nowPlaying.artist || '';
+    const artBox = document.getElementById('npArt');
+    if (s.nowPlaying.art) {
+      artBox.innerHTML = `<img src="${s.nowPlaying.art}" alt="">`;
+    } else {
+      artBox.innerHTML = `<span class="np-note">🎵</span>`;
+    }
     document.getElementById('nowPlaying').style.display = '';
   }
   // panel visibility toggles
